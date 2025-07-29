@@ -24,6 +24,7 @@
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
+                        <th>日時</th>
                         <th>用途</th>
                         <th>支払った人</th>
                         <th>金額</th>
@@ -40,6 +41,9 @@
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#expense-modal">
                 費用を追加
             </button>
+            <button type="button" class="btn btn-success" id="export-excel-button">
+                Excelに出力
+            </button>
         </div>
     </div>
 
@@ -54,6 +58,10 @@
                 <div class="modal-body">
                     <form id="expense-form">
                         <input type="hidden" id="expense-id">
+                        <div class="mb-3">
+                            <label for="expense-date" class="form-label">日時</label>
+                            <input type="datetime-local" class="form-control" id="expense-date" required>
+                        </div>
                         <div class="mb-3">
                             <label for="expense-description" class="form-label">用途</label>
                             <input type="text" class="form-control" id="expense-description" required>
@@ -101,6 +109,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
