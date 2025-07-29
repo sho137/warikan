@@ -1,0 +1,15 @@
+.summary-card.plus {
+    color: blue;
+}
+
+.summary-card.minus {
+    color: red;
+}
+
+.summary-card h5 {
+    cursor: pointer;
+}
+
+.summary-card h5:hover {
+    text-decoration: underline;
+}

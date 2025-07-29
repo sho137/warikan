@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>計算アプリ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">計算アプリ</h1>
+
+        <!-- 清算サマリー -->
+        <div class="row text-center" id="summary-section">
+            <!-- JavaScriptで動的に生成 -->
+        </div>
+
+        <hr>
+
+        <!-- 費用一覧 -->
+        <h2 class="mt-5">費用一覧</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>支払った人</th>
+                        <th>金額</th>
+                        <th>編集</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-list">
+                    <!-- JavaScriptで動的に生成 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#expense-modal">
+                費用を追加
+            </button>
+        </div>
+    </div>
+
+    <!-- 費用追加/編集モーダル -->
+    <div class="modal fade" id="expense-modal" tabindex="-1" aria-labelledby="expense-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="expense-modal-label">費用の追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="expense-form">
+                        <input type="hidden" id="expense-id">
+                        <div class="mb-3">
+                            <label for="expense-description" class="form-label">用途</label>
+                            <input type="text" class="form-control" id="expense-description" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-amount" class="form-label">金額</label>
+                            <input type="number" class="form-control" id="expense-amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-payer" class="form-label">支払った人</label>
+                            <select class="form-select" id="expense-payer">
+                                <!-- JavaScriptで動的に生成 -->
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">保存</button>
+                            <button type="button" class="btn btn-danger d-none" id="delete-button">削除</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 氏名編集モーダル -->
+    <div class="modal fade" id="name-modal" tabindex="-1" aria-labelledby="name-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="name-modal-label">氏名の編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="name-form">
+                        <input type="hidden" id="member-id">
+                        <div class="mb-3">
+                            <label for="member-name" class="form-label">新しい氏名</label>
+                            <input type="text" class="form-control" id="member-name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
