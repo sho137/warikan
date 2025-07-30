@@ -76,10 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderExpenses = () => {
         expenseList.innerHTML = '';
-        expenses.forEach(expense => {
+        const sortedExpenses = [...expenses].sort((a, b) => new Date(a.date) - new Date(b.date));
+        sortedExpenses.forEach(expense => {
             const payer = members.find(m => m.id === expense.payerId);
             const row = document.createElement('tr');
             row.innerHTML = `
+                <td>${new Date(expense.date).toLocaleString('ja-JP')}</td>
                 <td>${expense.description}</td>
                 <td>${payer ? payer.name : '不明'}</td>
                 <td>${formatCurrency(expense.amount)}</td>
@@ -109,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     expenseForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const id = document.getElementById('expense-id').value;
+        const date = document.getElementById('expense-date').value;
         const description = document.getElementById('expense-description').value;
         const amount = parseInt(document.getElementById('expense-amount').value, 10);
         const payerId = parseInt(document.getElementById('expense-payer').value, 10);
@@ -116,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (id) {
             const expense = expenses.find(exp => exp.id == id);
             if (expense) {
+                expense.date = date;
                 expense.description = description;
                 expense.amount = amount;
                 expense.payerId = payerId;
@@ -123,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const newExpense = {
                 id: Date.now(),
+                date,
                 description,
                 amount,
                 payerId
@@ -147,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const expense = expenses.find(exp => exp.id == id);
             if (expense) {
                 document.getElementById('expense-id').value = expense.id;
+                document.getElementById('expense-date').value = expense.date ? new Date(expense.date).toISOString().slice(0, 16) : '';
                 document.getElementById('expense-description').value = expense.description;
                 document.getElementById('expense-amount').value = expense.amount;
                 document.getElementById('expense-payer').value = expense.payerId;
@@ -154,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             expenseModalLabel.textContent = '費用の追加';
+            document.getElementById('expense-date').value = new Date().toISOString().slice(0, 16);
         }
     });
 
@@ -205,4 +212,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     render();
+
+    document.getElementById('export-csv-button').addEventListener('click', () => {
+        // 費用一覧CSV
+        let expense_csv = '日時,用途,支払った人,金額\n';
+        expenses.forEach(expense => {
+            const payer = members.find(m => m.id === expense.payerId);
+            expense_csv += `${new Date(expense.date).toLocaleString('ja-JP')},${expense.description},${payer ? payer.name : '不明'},${expense.amount}\n`;
+        });
+
+        let expense_blob = new Blob(["\uFEFF" + expense_csv], { type: 'text/csv;charset=utf-8;' });
+        let expense_link = document.createElement('a');
+        expense_link.href = URL.createObjectURL(expense_blob);
+        expense_link.download = 'warikan_expenses.csv';
+        expense_link.click();
+
+        // 清算サマリーCSV
+        const balances = calculateBalances();
+        let summary_csv = 'メンバー,収支\n';
+        members.forEach(member => {
+            const balance = balances[member.id] || 0;
+            summary_csv += `${member.name},${balance}\n`;
+        });
+
+        let summary_blob = new Blob(["\uFEFF" + summary_csv], { type: 'text/csv;charset=utf-8;' });
+        let summary_link = document.createElement('a');
+        summary_link.href = URL.createObjectURL(summary_blob);
+        summary_link.download = 'warikan_summary.csv';
+        summary_link.click();
+    });
 });
