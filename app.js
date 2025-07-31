@@ -87,8 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${new Date(expense.date).toLocaleString('ja-JP')}</td>
-                <td>${expense.description}</td>
                 <td>${payer ? payer.name : '不明'}</td>
+                <td>${expense.description}</td>
                 <td>${formatCurrency(expense.amount)}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary edit-expense-button" data-id="${expense.id}">編集</button>
