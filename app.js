@@ -1,4 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBdC7vutYtrzmR5isHa7JyzxjJ8V2hEufE",
+        authDomain: "warikan-data.firebaseapp.com",
+        projectId: "warikan-data",
+        storageBucket: "warikan-data.firebasestorage.app",
+        messagingSenderId: "309496401708",
+        appId: "1:309496401708:web:1ad3c98d9d396126856689",
+        measurementId: "G-RWMX6JFSV1"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const summarySection = document.getElementById('summary-section');
     const expenseList = document.getElementById('expense-list');
     const expenseForm = document.getElementById('expense-form');
@@ -9,18 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameForm = document.getElementById('name-form');
     const nameModal = new bootstrap.Modal(document.getElementById('name-modal'));
 
-    let members = JSON.parse(localStorage.getItem('members')) || [
-        { id: 1, name: 'Aさん' },
-        { id: 2, name: 'Bさん' },
-        { id: 3, name: 'Cさん' },
-        { id: 4, name: 'Dさん' }
-    ];
-    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-
-    const saveState = () => {
-        localStorage.setItem('members', JSON.stringify(members));
-        localStorage.setItem('expenses', JSON.stringify(expenses));
-    };
+    let members = [];
+    let expenses = [];
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
@@ -108,36 +113,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- Firestore Integration ---
+
+    // Listen for real-time updates on members
+    db.collection('members').orderBy('name').onSnapshot(snapshot => {
+        members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        render();
+    });
+
+    // Listen for real-time updates on expenses
+    db.collection('expenses').onSnapshot(snapshot => {
+        expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        render();
+    });
+
     expenseForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const id = document.getElementById('expense-id').value;
-        const date = document.getElementById('expense-date').value;
-        const description = document.getElementById('expense-description').value;
-        const amount = parseInt(document.getElementById('expense-amount').value, 10);
-        const payerId = parseInt(document.getElementById('expense-payer').value, 10);
+        const expenseData = {
+            date: document.getElementById('expense-date').value,
+            description: document.getElementById('expense-description').value,
+            amount: parseInt(document.getElementById('expense-amount').value, 10),
+            payerId: document.getElementById('expense-payer').value
+        };
 
         if (id) {
-            const expense = expenses.find(exp => exp.id == id);
-            if (expense) {
-                expense.date = date;
-                expense.description = description;
-                expense.amount = amount;
-                expense.payerId = payerId;
-            }
+            db.collection('expenses').doc(id).update(expenseData);
         } else {
-            const newExpense = {
-                id: Date.now(),
-                date,
-                description,
-                amount,
-                payerId
-            };
-            expenses.push(newExpense);
+            db.collection('expenses').add(expenseData);
         }
-        saveState();
-        render();
         expenseModal.hide();
     });
+
+    deleteButton.addEventListener('click', () => {
+        const id = document.getElementById('expense-id').value;
+        if (id) {
+            db.collection('expenses').doc(id).delete();
+        }
+        expenseModal.hide();
+    });
+
+    nameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('member-id').value;
+        const newName = document.getElementById('member-name').value;
+        if (id) {
+            db.collection('members').doc(id).update({ name: newName });
+        }
+        nameModal.hide();
+    });
+
+    // --- Modals and Event Listeners ---
 
     expenseModalEl.addEventListener('show.bs.modal', (event) => {
         const button = event.relatedTarget;
@@ -164,14 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    deleteButton.addEventListener('click', () => {
-        const id = document.getElementById('expense-id').value;
-        expenses = expenses.filter(exp => exp.id != id);
-        saveState();
-        render();
-        expenseModal.hide();
-    });
-
     summarySection.addEventListener('click', (e) => {
         const title = e.target.closest('.card-title');
         if (title) {
@@ -183,19 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 nameModal.show();
             }
         }
-    });
-
-    nameForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = document.getElementById('member-id').value;
-        const newName = document.getElementById('member-name').value;
-        const member = members.find(m => m.id == id);
-        if (member) {
-            member.name = newName;
-        }
-        saveState();
-        render();
-        nameModal.hide();
     });
 
     expenseList.addEventListener('click', (e) => {
@@ -211,10 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    render();
-
     document.getElementById('export-csv-button').addEventListener('click', () => {
-        // 費用一覧CSV
+        // ... (CSV export logic remains the same)
         let expense_csv = '日時,用途,支払った人,金額\n';
         expenses.forEach(expense => {
             const payer = members.find(m => m.id === expense.payerId);
@@ -227,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         expense_link.download = 'warikan_expenses.csv';
         expense_link.click();
 
-        // 清算サマリーCSV
         const balances = calculateBalances();
         let summary_csv = 'メンバー,収支\n';
         members.forEach(member => {
