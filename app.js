@@ -115,13 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Firestore Integration ---
 
-    // Listen for real-time updates on members
     db.collection('members').orderBy('name').onSnapshot(snapshot => {
         members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         render();
     });
 
-    // Listen for real-time updates on expenses
     db.collection('expenses').onSnapshot(snapshot => {
         expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         render();
@@ -178,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const expense = expenses.find(exp => exp.id == id);
             if (expense) {
                 document.getElementById('expense-id').value = expense.id;
-                document.getElementById('expense-date').value = expense.date ? new Date(expense.date).toISOString().slice(0, 16) : '';
+                document.getElementById('expense-date').value = expense.date;
                 document.getElementById('expense-description').value = expense.description;
                 document.getElementById('expense-amount').value = expense.amount;
                 document.getElementById('expense-payer').value = expense.payerId;
@@ -186,7 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             expenseModalLabel.textContent = '費用の追加';
-            document.getElementById('expense-date').value = new Date().toISOString().slice(0, 16);
+            // **ここが修正点です**
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('expense-date').value = now.toISOString().slice(0, 16);
         }
     });
 
@@ -217,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('export-csv-button').addEventListener('click', () => {
-        // ... (CSV export logic remains the same)
         let expense_csv = '日時,用途,支払った人,金額\n';
         expenses.forEach(expense => {
             const payer = members.find(m => m.id === expense.payerId);
